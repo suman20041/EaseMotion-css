@@ -1,142 +1,154 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Form Field Focus Choreography</title>
-    <link rel="stylesheet" href="./style.css" />
-  </head>
-  <body>
-    <main class="shell">
-      <header class="intro">
-        <p class="eyebrow">Form micro-motion</p>
-        <h1>Form Field Focus Choreography</h1>
-        <p class="lede">
-          Floating labels, helper slide-in, error shake, and success check draw —
-          one cohesive frontend-only flow.
-        </p>
-      </header>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Form Field Focus Choreography</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="page">
+    <header class="intro">
+      <p class="eyebrow">Focus choreography</p>
+      <h1>Form Field Motion Demo</h1>
+      <p class="lede">
+        Focus a field, watch the label float and helper slide in.
+        Submit empty for error shake, or fill valid values for the success check draw.
+      </p>
+    </header>
 
-      <form class="form" id="demo-form" novalidate>
-        <div class="field" data-field="name">
-          <div class="field-control">
-            <input id="name" name="name" type="text" placeholder=" " required minlength="2" />
-            <label for="name">Full name</label>
-          </div>
-          <p class="helper">Use your preferred name (min 2 characters).</p>
-          <p class="error" role="alert" hidden>Please enter at least 2 characters.</p>
+    <form class="form-card" id="demo-form" novalidate>
+      <div class="field" data-field="name">
+        <div class="field-shell">
+          <input
+            id="name"
+            name="name"
+            type="text"
+            autocomplete="name"
+            placeholder=" "
+            required
+            minlength="2"
+          />
+          <label for="name">Full name</label>
         </div>
+        <p class="helper" data-helper>Use your preferred display name.</p>
+        <p class="error-msg" data-error hidden>Please enter at least 2 characters.</p>
+      </div>
 
-        <div class="field" data-field="email">
-          <div class="field-control">
-            <input id="email" name="email" type="email" placeholder=" " required />
-            <label for="email">Email</label>
-          </div>
-          <p class="helper">We’ll only use this for the demo confirmation.</p>
-          <p class="error" role="alert" hidden>Enter a valid email address.</p>
+      <div class="field" data-field="email">
+        <div class="field-shell">
+          <input
+            id="email"
+            name="email"
+            type="email"
+            autocomplete="email"
+            placeholder=" "
+            required
+          />
+          <label for="email">Email address</label>
         </div>
+        <p class="helper" data-helper>We’ll only use this for demo feedback.</p>
+        <p class="error-msg" data-error hidden>Enter a valid email like name@site.com.</p>
+      </div>
 
-        <div class="field" data-field="message">
-          <div class="field-control">
-            <textarea id="message" name="message" rows="4" placeholder=" " required minlength="8"></textarea>
-            <label for="message">Message</label>
-          </div>
-          <p class="helper">Describe the micro-interaction you want to practice.</p>
-          <p class="error" role="alert" hidden>Write at least 8 characters.</p>
+      <div class="field" data-field="message">
+        <div class="field-shell field-shell--textarea">
+          <textarea
+            id="message"
+            name="message"
+            rows="3"
+            placeholder=" "
+            required
+            minlength="8"
+          ></textarea>
+          <label for="message">Short message</label>
         </div>
+        <p class="helper" data-helper>Say what you want this form to confirm.</p>
+        <p class="error-msg" data-error hidden>Write at least 8 characters.</p>
+      </div>
 
-        <button type="submit" class="submit-btn" id="submit-btn">
-          <span class="btn-label">Send message</span>
-          <span class="success-check" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
-              <path
-                class="check-path"
-                d="M5 12.5l4.5 4.5L19 7.5"
-                stroke="currentColor"
-                stroke-width="2.4"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          </span>
-        </button>
+      <button type="submit" class="submit-btn" id="submit-btn">
+        <span class="submit-label">Send demo</span>
+        <span class="success-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none">
+            <circle class="check-ring" cx="16" cy="16" r="14" />
+            <path class="check-path" d="M9 16.5l4.2 4.2L23 11" />
+          </svg>
+        </span>
+      </button>
 
-        <p class="form-status" id="form-status" aria-live="polite"></p>
-      </form>
-    </main>
+      <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
+    </form>
+  </main>
 
-    <script>
-      (function () {
-        var form = document.getElementById("demo-form");
-        var statusEl = document.getElementById("form-status");
-        var submitBtn = document.getElementById("submit-btn");
-        var fields = Array.prototype.slice.call(document.querySelectorAll(".field"));
-        var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  <script>
+    (function () {
+      const form = document.getElementById('demo-form');
+      const status = document.getElementById('form-status');
+      const submitBtn = document.getElementById('submit-btn');
+      const fields = Array.from(form.querySelectorAll('.field'));
 
-        function validators(field) {
-          var input = field.querySelector("input, textarea");
-          var name = input.name;
-          var value = input.value.trim();
+      function isValidEmail(value) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+      }
 
-          if (name === "name") return value.length >= 2;
-          if (name === "email") return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-          if (name === "message") return value.length >= 8;
-          return input.checkValidity();
-        }
+      function validateField(field) {
+        const input = field.querySelector('input, textarea');
+        const error = field.querySelector('[data-error]');
+        let ok = true;
 
-        function setFieldState(field, ok) {
-          var error = field.querySelector(".error");
-          field.classList.toggle("is-invalid", !ok);
-          field.classList.toggle("is-valid", ok);
-          error.hidden = ok;
+        if (!input.value.trim()) ok = false;
+        else if (input.type === 'email' && !isValidEmail(input.value.trim())) ok = false;
+        else if (input.minLength > 0 && input.value.trim().length < input.minLength) ok = false;
 
-          if (!ok && !reduceMotion) {
-            field.classList.remove("is-shaking");
-            void field.offsetWidth;
-            field.classList.add("is-shaking");
-          }
-        }
+        field.classList.toggle('is-invalid', !ok);
+        field.classList.toggle('is-valid', ok && input.value.trim().length > 0);
+        if (error) error.hidden = ok;
+        return ok;
+      }
 
+      fields.forEach(function (field) {
+        const input = field.querySelector('input, textarea');
+        input.addEventListener('focus', function () {
+          field.classList.add('is-focused');
+        });
+        input.addEventListener('blur', function () {
+          field.classList.remove('is-focused');
+          field.classList.toggle('has-value', input.value.trim().length > 0);
+          if (form.classList.contains('was-submitted')) validateField(field);
+        });
+        input.addEventListener('input', function () {
+          field.classList.toggle('has-value', input.value.trim().length > 0);
+          if (field.classList.contains('is-invalid')) validateField(field);
+        });
+      });
+
+      form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        form.classList.add('was-submitted');
+        submitBtn.classList.remove('is-success');
+        status.textContent = '';
+
+        let allValid = true;
         fields.forEach(function (field) {
-          var input = field.querySelector("input, textarea");
-          input.addEventListener("focus", function () {
-            field.classList.add("is-focused");
-          });
-          input.addEventListener("blur", function () {
-            field.classList.remove("is-focused");
-            if (input.value.trim()) {
-              setFieldState(field, validators(field));
-            } else {
-              field.classList.remove("is-invalid", "is-valid", "is-shaking");
-              field.querySelector(".error").hidden = true;
-            }
-          });
-        });
-
-        form.addEventListener("submit", function (event) {
-          event.preventDefault();
-          statusEl.textContent = "";
-          submitBtn.classList.remove("is-success");
-
-          var allOk = true;
-          fields.forEach(function (field) {
-            var ok = validators(field);
-            setFieldState(field, ok);
-            if (!ok) allOk = false;
-          });
-
-          if (!allOk) {
-            statusEl.textContent = "Fix the highlighted fields and try again.";
-            return;
-          }
-
-          submitBtn.classList.add("is-success");
-          statusEl.textContent = "Looks good — success check drawn.";
-          if (reduceMotion) {
-            submitBtn.querySelector(".btn-label").textContent = "Sent";
+          const ok = validateField(field);
+          if (!ok) {
+            allValid = false;
+            field.classList.remove('is-shaking');
+            void field.offsetWidth;
+            field.classList.add('is-shaking');
           }
         });
-      })();
-    </script>
-  </body>
+
+        if (!allValid) {
+          status.textContent = 'Fix the highlighted fields and try again.';
+          return;
+        }
+
+        submitBtn.classList.add('is-success');
+        status.textContent = 'Looks good — success check drawn.';
+      });
+    })();
+  </script>
+</body>
 </html>
